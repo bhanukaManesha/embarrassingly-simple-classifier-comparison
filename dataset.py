@@ -8,6 +8,7 @@ import os
 import h5py
 from sklearn.preprocessing import LabelEncoder
 from tqdm import tqdm
+import numpy as np
 
 class IndoorSceneDataset(Dataset):
     def __init__(self, text_file, root_dir, transform=None):
@@ -33,19 +34,21 @@ class IndoorSceneDataset(Dataset):
         return image, indoor_scene
 
 class IndoorSceneFeatureDataset(Dataset):
-    def __init__(self, text_file, feature_file, root_dir, transform=None):
+    def __init__(self, text_file, feature_file, root_dir=None, transform=None):
         super(IndoorSceneDataset).__init__()
 
         self.indoor_scenes = pd.read_csv(text_file, header=None)
 
         f = h5py.File(feature_file, 'r')
         self.features = f['features']
+        self.labels = f['labels']
+        mappinglist = np.array(f['mapping'])
+        self.mapping = [str(el).strip('[]').strip('\'') for el in mappinglist.astype(str)]
 
         self.root_dir = root_dir
         self.transform = transform
 
         self.label_encoder = LabelEncoder()
-        self.labels = self.__get_labels()
 
 
     def __len__(self):
@@ -57,21 +60,6 @@ class IndoorSceneFeatureDataset(Dataset):
         image = self.features[idx].squeeze(0)
         indoor_scene = self.labels[idx]
         return image, indoor_scene
-
-    def __get_labels(self):
-
-        scenes = []
-        for key, item in tqdm(self.indoor_scenes.iterrows()):
-            scene = item[0].split('/')[0]
-            scenes.append(scene)
-
-        unq_labels = list(set(scenes))
-        print(len(unq_labels))
-        self.label_encoder.fit(unq_labels)
-
-        return self.label_encoder.transform(scenes)
-
-
 
 if __name__ == '__main__':
     # indoorscene_dataset = IndoorSceneDataset(text_file='Dataset/TrainImages.txt',
@@ -93,8 +81,8 @@ if __name__ == '__main__':
     #         break
 
     indoorscene_dataset = IndoorSceneFeatureDataset(
-                                            text_file='Dataset/TrainImages.txt',
-                                            feature_file = 'Dataset/features.h5',
+                                            text_file='Dataset/TestImages1.txt',
+                                            feature_file = 'Dataset/test-features-1.h5',
                                              root_dir='Dataset/Images/',
                                              transform=transforms.Compose([
                                                  transforms.Resize((224, 224)),
@@ -105,10 +93,10 @@ if __name__ == '__main__':
 
     trainloader = DataLoader(indoorscene_dataset, batch_size=8, shuffle=True, num_workers=1)
 
-    for i_batch, (images, labels) in enumerate(trainloader):
-        print(images.shape)
-        print(labels)
-
-        # observe 4th batch and stop.
-        if i_batch == 4:
-            break
+    # for i_batch, (images, labels) in enumerate(trainloader):
+    #     print(images.shape)
+    #     print(labels)
+    #
+    #     # observe 4th batch and stop.
+    #     if i_batch == 4:
+    #         break
