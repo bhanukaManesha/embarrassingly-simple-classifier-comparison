@@ -7,6 +7,7 @@ from dataset import IndoorSceneDataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import h5py
+from sklearn.preprocessing import LabelEncoder
 
 class FeatureExtractor():
 
@@ -24,14 +25,19 @@ class FeatureExtractor():
         # Set model to evaluation mode
         self.model.eval()
 
+        self.label_encoder = LabelEncoder()
+
         self.hdf5 = None
         self.features = None
+        self.labels = None
+        self.mapping = None
 
     def extract_features(self):
 
         embeddings = []
+        labels = []
 
-        for i_batch, (images, _) in enumerate(tqdm(self.dataloader)):
+        for i_batch, (images, l) in enumerate(tqdm(self.dataloader)):
 
             embedding = torch.zeros(self.dataloader.batch_size, 2048)
 
@@ -47,17 +53,27 @@ class FeatureExtractor():
 
             numpy_embedding = embedding.detach().numpy()
 
+            labels.append(l[0])
+
             embeddings.append(numpy_embedding)
 
         # Create a feature vector
         self.features = np.asarray(embeddings)
 
+        # Convert to indexes
+        self.mapping = list(set(labels))
+        self.label_encoder.fit(self.mapping)
+        self.labels = self.label_encoder.transform(labels)
+
     def to_hdf5(self, path):
         self.hdf5 = h5py.File(path, 'w')
         self.hdf5.create_dataset('features', data=self.features)
+        self.hdf5.create_dataset('labels', data=self.labels)
+
+        mapping_list = [n.encode("utf-8") for n in self.mapping]
+        self.hdf5.create_dataset('mapping', (len(mapping_list), 1), 'S30', mapping_list)
+
         self.hdf5.close()
-
-
 
 if __name__ == '__main__':
 
@@ -74,4 +90,4 @@ if __name__ == '__main__':
 
     fe = FeatureExtractor(dataloader=trainloader)
     fe.extract_features()
-    fe.to_hdf5('Dataset/features.h5')
+    fe.to_hdf5('Dataset/train-features.h5')
