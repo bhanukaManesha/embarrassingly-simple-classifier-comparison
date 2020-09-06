@@ -12,16 +12,14 @@ rcParams['figure.figsize'] = 7.5, 10
 
 
 def results(y_true, y_pred, classes):
-
     y_pred_ = y_pred.argmax(dim=1)
-    y_true_ = torch.cat(y_true)
 
     #classification report
-    print(classification_report(y_true_, y_pred_, target_names=classes))
+    print(classification_report(y_true, y_pred_, target_names=classes))
 
     # AUC curve
     y_true_ohe = np.zeros((len(y_pred), len(classes)))
-    for idx, lbl in enumerate(y_true_):
+    for idx, lbl in enumerate(y_true):
         y_true_ohe[idx][lbl] = 1
 
     y_pred = y_pred.detach().numpy()
@@ -29,9 +27,8 @@ def results(y_true, y_pred, classes):
     plot_multiclass_roc(y_true_ohe,y_pred, classes=classes)
 
     # Confusion matrix
-    cm = confusion_matrix(y_true_, y_pred_)
+    cm = confusion_matrix(y_true, y_pred_)
     plot_confusion_matrix(cm, classes)
-
 
 def plot_multiclass_roc(y_true, y_pred, classes):
     n_classes = len(classes)
