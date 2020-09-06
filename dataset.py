@@ -34,14 +34,18 @@ class IndoorSceneDataset(Dataset):
         return image, indoor_scene
 
 class IndoorSceneFeatureDataset(Dataset):
-    def __init__(self, text_file, feature_file, root_dir=None, transform=None):
+    def __init__(self, text_file, feature_file, train, root_dir=None, transform=None):
         super(IndoorSceneDataset).__init__()
 
         self.indoor_scenes = pd.read_csv(text_file, header=None)
-
         f = h5py.File(feature_file, 'r')
-        self.features = f['features']
-        self.labels = f['labels']
+        if train:
+            self.features = f['train_features']
+            self.labels = f['train_labels']
+        else:
+            self.features = f['test_features']
+            self.labels = f['test_labels']
+
         mappinglist = np.array(f['mapping'])
         self.mapping = [str(el).strip('[]').strip('\'') for el in mappinglist.astype(str)]
 
