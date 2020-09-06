@@ -13,9 +13,19 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f'Running on : {device}')
 
+    params = {
+        "batch_size" : 4,
+        "epochs" : 2000,
+        "learning_rate":2e-5
+
+    }
+
     network = IndoorNetwork()
     network.to(device)
     print(network)
+    print(params)
+
+
 
     exp_name = 'network-1e5'
 
@@ -23,7 +33,7 @@ def main():
     # resume_exp_name = exp_name
     # resume_epoch = 300
 
-    resume_training = True
+    resume_training = False
     resume_exp_name = exp_name
     resume_epoch = 900
 
@@ -32,16 +42,16 @@ def main():
         text_file='Dataset/TrainImages.txt',
         feature_file='Dataset/features.h5',
         train=True)
-    train_loader = DataLoader(indoorscene_traindataset, batch_size=16, shuffle=True, num_workers=1)
+    train_loader = DataLoader(indoorscene_traindataset, batch_size=params['batch_size'], shuffle=True, num_workers=1)
 
     indoorscene_testdataset = IndoorSceneFeatureDataset(
         text_file='Dataset/TestImages.txt',
         feature_file='Dataset/features.h5',
         train=False)
-    val_loader = DataLoader(indoorscene_testdataset, batch_size=16, shuffle=True, num_workers=1)
+    val_loader = DataLoader(indoorscene_testdataset, batch_size=params['batch_size'], shuffle=True, num_workers=1)
 
 
-    optimizer = RMSprop(network.parameters(), lr=1e-5)
+    optimizer = RMSprop(network.parameters(), lr=params['learning_rate'])
 
     if resume_training:
         checkpoint = f'checkpoints/{resume_exp_name}-{resume_epoch}'
@@ -50,7 +60,7 @@ def main():
         optimizer.load_state_dict(state['optimizer_state_dict'])
         print(f"Resuming from checkpoint : {checkpoint}")
 
-    for epoch in range(1000):
+    for epoch in range(params['epochs']):
         total_loss = 0
         total_correct = 0
         total_preds = []
