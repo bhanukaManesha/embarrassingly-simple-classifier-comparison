@@ -5,7 +5,6 @@ from torch.optim import Adam, RMSprop
 import torch.nn.functional as F
 import torch
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, classification_report
-import numpy as np
 
 def get_num_correct(preds, labels):
     return preds.argmax(dim=1).eq(labels).sum().item()

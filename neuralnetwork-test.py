@@ -47,6 +47,7 @@ def main():
         final_pred.append(val_preds.squeeze(dim=0))
         y_true.append(labels.squeeze(dim=0))
     y_pred = torch.cat(final_pred)
+    y_true = torch.cat(y_true)
 
     classes = indoorscene_traindataset.mapping
 
