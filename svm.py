@@ -35,9 +35,10 @@ def run(params):
     classes = indoorscene_traindataset.mapping
 
     # train metrics
-    pred_start_time = time.time()
+    train_pred_start_time = time.time()
     x_pred = clf.predict(train_images)
-    pred_time = time.time() - pred_start_time
+    train_pred_time = time.time() - train_pred_start_time
+
     x_pred_ohe = torch.zeros((len(x_pred), len(classes)))
     for idx, lbl in enumerate(x_pred):
         x_pred_ohe[idx][lbl] = 1
@@ -45,22 +46,20 @@ def run(params):
 
     # test metrics
     test_images, y_true = next(iter(val_loader))
-    pred_start_time = time.time()
+    test_pred_start_time = time.time()
     y_pred = clf.predict(test_images)
-    pred_time = time.time() - pred_start_time
+    test_pred_time = time.time() - test_pred_start_time
     y_pred_ohe = torch.zeros((len(y_pred), len(classes)))
     for idx, lbl in enumerate(y_pred):
         y_pred_ohe[idx][lbl] = 1
 
     # Saving metrics
     params['train_time'] = train_time
-    params['pred_time'] = pred_time
+    params['train_pred_time'] = train_pred_time
+    params['test_pred_time'] = test_pred_time
 
+    # Store the results
     results(y_true, y_pred_ohe, classes, params)
-
-
-
-
 
 def run_loop():
     type = 'svm'
