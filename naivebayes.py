@@ -3,40 +3,83 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.naive_bayes import GaussianNB
 from utils import results
 import torch
+import time
 
-indoorscene_traindataset = IndoorSceneFeatureDataset(
-    text_file='Dataset/TrainImages.txt',
-    feature_file='Dataset/features.h5',
-    train=True)
-train_loader = DataLoader(indoorscene_traindataset, batch_size=len(indoorscene_traindataset), shuffle=True, num_workers=1)
+def run(params):
+    indoorscene_traindataset = IndoorSceneFeatureDataset(
+        text_file='Dataset/TrainImages.txt',
+        feature_file=f'Dataset/{params["feature_extractor"]}-features.h5',
+        train=True)
+    train_loader = DataLoader(indoorscene_traindataset, batch_size=len(indoorscene_traindataset), shuffle=True,
+                              num_workers=1)
 
-indoorscene_testdataset = IndoorSceneFeatureDataset(
-    text_file='Dataset/TestImages.txt',
-    feature_file='Dataset/features.h5',
-    train=False)
-val_loader = DataLoader(indoorscene_testdataset, batch_size=len(indoorscene_testdataset), shuffle=True, num_workers=1)
+    indoorscene_testdataset = IndoorSceneFeatureDataset(
+        text_file='Dataset/TestImages.txt',
+        feature_file=f'Dataset/{params["feature_extractor"]}-features.h5',
+        train=False)
+    val_loader = DataLoader(indoorscene_testdataset, batch_size=len(indoorscene_testdataset), shuffle=True,
+                            num_workers=1)
 
 
-def main():
-
+    # training images
     train_images, train_labels = next(iter(train_loader))
+    classes = indoorscene_traindataset.mapping
 
-    clf = GaussianNB()
+    # training
+    clf = GaussianNB(
+        var_smoothing=params['var_smoothing']
+    )
+    train_start_time = time.time()
     clf = clf.fit(train_images, train_labels)
-
-    test_images, y_true = next(iter(val_loader))
-
-    y_pred = clf.predict(test_images)
+    train_time = time.time() - train_start_time
 
     classes = indoorscene_traindataset.mapping
 
+    # train metrics
+    train_pred_start_time = time.time()
+    x_pred = clf.predict(train_images)
+    train_pred_time = time.time() - train_pred_start_time
+
+    x_pred_ohe = torch.zeros((len(x_pred), len(classes)))
+    for idx, lbl in enumerate(x_pred):
+        x_pred_ohe[idx][lbl] = 1
+
+    # test metrics
+    test_images, y_true = next(iter(val_loader))
+    test_pred_start_time = time.time()
+    y_pred = clf.predict(test_images)
+    test_pred_time = time.time() - test_pred_start_time
     y_pred_ohe = torch.zeros((len(y_pred), len(classes)))
     for idx, lbl in enumerate(y_pred):
         y_pred_ohe[idx][lbl] = 1
 
-    results(y_true, y_pred_ohe, classes)
+    # Saving metrics
+    params['train_time'] = train_time
+    params['train_pred_time'] = train_pred_time
+    params['test_pred_time'] = test_pred_time
+
+    # Store the results
+    results(train_labels, x_pred_ohe, y_true, y_pred_ohe, classes, params)
+
+
+def run_loop():
+    type = 'naive-bayes'
+    feature_extractors = ['resnext101', 'mnasnet1_0']
+    var_smoothings = [1e-9, 1e-6, 1e-3]
+
+    for feature_extractor in feature_extractors:
+        for var_smoothing in var_smoothings:
+            expt_name = f'{feature_extractor}-{var_smoothing}'
+            print(type, expt_name)
+
+            run({
+                'var_smoothing':var_smoothing,
+                'feature_extractor':feature_extractor,
+                'exp_name' : expt_name,
+                'model_type':type
+            })
 
 
 
 if __name__ == '__main__':
-    main()
+    run_loop()
