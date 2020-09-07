@@ -27,8 +27,7 @@ def run(params):
 
     # training
     clf = DecisionTreeClassifier(
-        criterion=params['criterion'],
-        n_jobs=4
+        criterion=params['criterion']
     )
 
     train_start_time = time.time()
