@@ -1,5 +1,5 @@
 from __future__ import print_function, division
-
+import time
 import torch
 import numpy as np
 from torchvision import datasets, models, transforms
@@ -7,21 +7,36 @@ from dataset import IndoorSceneDataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import h5py
+import json
 from sklearn.preprocessing import LabelEncoder
 
 class FeatureExtractor():
 
-    def __init__(self, train_dataloader, test_dataloader):
+    def __init__(self, name, train_dataloader, test_dataloader):
+
+        self.name = name
+
+        start_time = time.time()
         self.train_dataloader = train_dataloader
         self.test_dataloader = test_dataloader
 
         # Load the pretrained resnet model
-        self.model = models.resnext50_32x4d(pretrained=True)
-        print(self.model)
-        # Use the model object to select the desired layer
-        self.layer = self.model._modules.get('avgpool')
+        if self.name == 'resnext101':
+            self.model = models.resnext101_32x8d(pretrained=True)
+            # Use the model object to select the desired layer
+            self.layer = self.model._modules.get('avgpool')
+        elif name == 'mnasnet1_0':
+            self.model = models.mnasnet1_0(pretrained=True)
+            # Use the model object to select the desired layer
+            self.layer = self.model.classifier[0]
+        else:
+            raise("Model not supported")
 
-        # print(self.model)
+        if torch.cuda.is_available():
+            self.model = self.model.cuda()
+
+        print(self.model)
+
         # Set model to evaluation mode
         self.model.eval()
 
@@ -36,10 +51,19 @@ class FeatureExtractor():
         self.test_features = None
         self.test_labels = None
 
-
         self.__extract_features(dataset='train')
         self.__extract_features(dataset='test')
 
+        self.__to_hdf5(f'Dataset/{name}-features.h5')
+
+        metrics = {
+            'name' : self.name,
+            'model': self.model,
+            'time-taken' : time.time() - start_time
+        }
+
+        log_file = open(f'Dataset/{name}-features-log.json', "w")
+        json.dump(metrics, log_file, indent=4)
 
     def __extract_features(self, dataset):
 
@@ -53,11 +77,23 @@ class FeatureExtractor():
 
         for i_batch, (images, l) in enumerate(tqdm(dataloader)):
 
-            embedding = torch.zeros(dataloader.batch_size, 2048)
+            if self.name == 'resnext101':
+                embedding = torch.zeros(dataloader.batch_size, 2048)
 
-            def copy_data(self, input, output):
-                reshaped_output = output.data.view(-1,2048)
-                embedding.copy_(reshaped_output)
+                def copy_data(self, input, output):
+                    reshaped_output = output.data.view(-1,2048)
+                    embedding.copy_(reshaped_output)
+
+            else:
+                embedding = torch.zeros(dataloader.batch_size, 1280)
+
+                def copy_data(self, input, output):
+                    reshaped_output = output.data.view(-1, 1280)
+                    embedding.copy_(reshaped_output)
+
+            if torch.cuda.is_available():
+                embedding = embedding.cuda()
+                images = images.cuda()
 
             h = self.layer.register_forward_hook(copy_data)
 
@@ -65,6 +101,7 @@ class FeatureExtractor():
 
             h.remove()
 
+            embedding = embedding.cpu()
             numpy_embedding = embedding.detach().numpy()
 
             labels.append(l[0])
@@ -87,7 +124,7 @@ class FeatureExtractor():
         else:
             self.test_labels = self.label_encoder.transform(labels)
 
-    def to_hdf5(self, path):
+    def __to_hdf5(self, path):
         self.hdf5 = h5py.File(path, 'w')
         self.hdf5.create_dataset('train_features', data=self.train_features)
         self.hdf5.create_dataset('train_labels', data=self.train_labels)
@@ -101,7 +138,7 @@ class FeatureExtractor():
         self.hdf5.close()
 
 if __name__ == '__main__':
-    train_indoorscene_dataset = IndoorSceneDataset(text_file='Dataset/TrainImages.txt',
+    train_indoorscene_dataset = IndoorSceneDataset(text_file='Dataset/TrainImages1.txt',
                                                   root_dir='Dataset/Images/',
                                                   transform=transforms.Compose([
                                                       transforms.Resize((224, 224)),
@@ -111,7 +148,7 @@ if __name__ == '__main__':
                                                   ]))
 
 
-    test_indoorscene_dataset = IndoorSceneDataset(text_file='Dataset/TestImages.txt',
+    test_indoorscene_dataset = IndoorSceneDataset(text_file='Dataset/TestImages1.txt',
                                         root_dir='Dataset/Images/',
                                         transform=transforms.Compose([
                                                transforms.Resize((224,224)),
@@ -121,7 +158,8 @@ if __name__ == '__main__':
 
     trainloader = DataLoader(train_indoorscene_dataset, batch_size=1, shuffle=False, num_workers=0)
     testloader = DataLoader(test_indoorscene_dataset, batch_size=1, shuffle=False, num_workers=0)
+    FeatureExtractor(name='resnext101', train_dataloader=trainloader, test_dataloader=testloader)
 
-
-    fe = FeatureExtractor(train_dataloader=trainloader, test_dataloader=testloader)
-    fe.to_hdf5('Dataset/features.h5')
+    trainloader = DataLoader(train_indoorscene_dataset, batch_size=1, shuffle=False, num_workers=0)
+    testloader = DataLoader(test_indoorscene_dataset, batch_size=1, shuffle=False, num_workers=0)
+    FeatureExtractor(name='mnasnet1_0', train_dataloader=trainloader, test_dataloader=testloader)
