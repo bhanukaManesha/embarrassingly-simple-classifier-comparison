@@ -25,13 +25,7 @@ def main():
     print(network)
     print(params)
 
-
-
     exp_name = 'network-1e5'
-
-    # resume_training = True
-    # resume_exp_name = exp_name
-    # resume_epoch = 300
 
     resume_training = False
     resume_exp_name = exp_name
@@ -51,7 +45,7 @@ def main():
     val_loader = DataLoader(indoorscene_testdataset, batch_size=params['batch_size'], shuffle=True, num_workers=1)
 
 
-    optimizer = RMSprop(network.parameters(), lr=params['learning_rate'])
+    optimizer = RMSprop(network.parameters(), lr=params['learning_rate'], weight_decay=1e-5)
 
     if resume_training:
         checkpoint = f'checkpoints/{resume_exp_name}-{resume_epoch}'
