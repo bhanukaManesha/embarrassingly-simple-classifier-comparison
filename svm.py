@@ -27,7 +27,9 @@ def run(params):
     # training
     clf = SVC(
         C=params['C'],
-        kernel=params['kernel'])
+        kernel=params['kernel'],
+
+    )
     train_start_time = time.time()
     clf = clf.fit(train_images, train_labels)
     train_time = time.time() - train_start_time
@@ -42,7 +44,6 @@ def run(params):
     x_pred_ohe = torch.zeros((len(x_pred), len(classes)))
     for idx, lbl in enumerate(x_pred):
         x_pred_ohe[idx][lbl] = 1
-    results(train_labels, x_pred_ohe, classes, params['model_type'], params['expt_name'])
 
     # test metrics
     test_images, y_true = next(iter(val_loader))
@@ -59,13 +60,13 @@ def run(params):
     params['test_pred_time'] = test_pred_time
 
     # Store the results
-    results(y_true, y_pred_ohe, classes, params)
+    results(train_labels, x_pred_ohe, y_true, y_pred_ohe, classes, params)
 
 def run_loop():
     type = 'svm'
     feature_extractors = ['resnext101', 'mnasnet1_0']
     kernels = ['linear','poly','rbf', 'sigmoid','precomputed']
-    C = [1.0, 2.0, 4.0, 8.0, 16.0]
+    C = [1e-4, 1e-2, 1, 1e2, 1e4]
 
     for feature_extractor in feature_extractors:
         for kernel in kernels:
