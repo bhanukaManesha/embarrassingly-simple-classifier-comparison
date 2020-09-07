@@ -58,7 +58,6 @@ class FeatureExtractor():
 
         metrics = {
             'name' : self.name,
-            'model': self.model,
             'time-taken' : time.time() - start_time
         }
 
@@ -138,7 +137,7 @@ class FeatureExtractor():
         self.hdf5.close()
 
 if __name__ == '__main__':
-    train_indoorscene_dataset = IndoorSceneDataset(text_file='Dataset/TrainImages1.txt',
+    train_indoorscene_dataset = IndoorSceneDataset(text_file='Dataset/TrainImages.txt',
                                                   root_dir='Dataset/Images/',
                                                   transform=transforms.Compose([
                                                       transforms.Resize((224, 224)),
@@ -148,7 +147,7 @@ if __name__ == '__main__':
                                                   ]))
 
 
-    test_indoorscene_dataset = IndoorSceneDataset(text_file='Dataset/TestImages1.txt',
+    test_indoorscene_dataset = IndoorSceneDataset(text_file='Dataset/TestImages.txt',
                                         root_dir='Dataset/Images/',
                                         transform=transforms.Compose([
                                                transforms.Resize((224,224)),
