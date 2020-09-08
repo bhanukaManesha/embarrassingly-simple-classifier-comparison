@@ -4,6 +4,9 @@ from torch.utils.data import Dataset, DataLoader
 from utils import results
 import torch
 from torch.optim import RMSprop
+from nn_train import evaluate
+
+
 indoorscene_traindataset = IndoorSceneFeatureDataset(
     text_file='Dataset/TrainImages.txt',
     feature_file='Dataset/features.h5',
@@ -36,22 +39,8 @@ def main():
     optimizer.load_state_dict(state['optimizer_state_dict'])
     print(f"Resuming from checkpoint : {checkpoint}")
 
-    # Evaluate
-    final_pred = []
-    y_true = []
-    for batch in val_loader:
-        images = batch[0].to(device)
-        labels = batch[1].to(device)
+    evaluate(network, val_loader, device)
 
-        val_preds = network(images)
-        final_pred.append(val_preds.squeeze(dim=0))
-        y_true.append(labels.squeeze(dim=0))
-    y_pred = torch.cat(final_pred)
-    y_true = torch.cat(y_true)
-
-    classes = indoorscene_traindataset.mapping
-
-    results(y_true, y_pred, classes)
 
 if __name__ == '__main__':
     main()
