@@ -11,10 +11,12 @@ import matplotlib.pyplot as plt
 from pylab import rcParams
 rcParams['figure.figsize'] = 20, 20
 
-def results(x_true, x_pred, y_true, y_pred, classes, params):
+def results(x_true, x_pred, y_true, y_pred, classes, params, path=None, name=None):
 
-    path = f'results/{params["model_type"]}/{params["exp_name"]}/'
-    name = f'{params["model_type"]}-{params["exp_name"]}'
+    if path is None and name is None:
+        path = f'results/{params["model_type"]}/{params["exp_name"]}/'
+        name = f'{params["model_type"]}-{params["exp_name"]}'
+
 
     # Create folder
     Path(path).mkdir(parents=True, exist_ok=True)
