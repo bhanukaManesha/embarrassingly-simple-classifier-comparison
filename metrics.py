@@ -13,6 +13,9 @@ class Metrics():
         self.precision = 0
         self.recall = 0
         self.f1_score = 0
+        self.train_time = 0
+        self.train_pred_time = 0
+        self.test_pred_time = 0
 
         self.classes = classes
 
@@ -25,6 +28,13 @@ class Metrics():
         self.precision = precision_score(y_true, y_pred, average='weighted')
         self.recall = recall_score(y_true, y_pred, average='weighted')
         self.f1_score = f1_score(y_true, y_pred, average='weighted')
+
+    def update_training_time(self, time):
+        self.train_time = time
+
+    def update_pred_time(self, train_pred, test_pred):
+        self.train_pred_time = train_pred
+        self.test_pred = test_pred
 
 
     def save(self, params, path, name):

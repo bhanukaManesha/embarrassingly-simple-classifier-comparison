@@ -10,6 +10,7 @@ from utils import results
 from tqdm import tqdm
 import os
 from sklearn.metrics import accuracy_score
+import time
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -102,6 +103,8 @@ def run(params):
     best_val_model_name = ""
     best_val_path = ""
 
+    start_time = time.time()
+
     for epoch in range(params['epochs']):
         total_loss = 0
         total_correct = 0
@@ -150,14 +153,17 @@ def run(params):
         total_val_labels = torch.cat(total_val_labels).to('cpu')
         total_val_correct += accuracy_score(total_val_labels, total_val_preds)
 
+        train_time = time.time() - start_time
+
         # update metrics
         train_metrics.update_epoch(epoch, total_loss, total_labels, total_preds)
+        train_metrics.update_training_time(train_time)
         val_metrics.update_epoch(epoch, total_val_loss, total_val_labels, total_val_preds)
+        val_metrics.update_training_time(train_time)
 
         # Step the learning rate
         if params['learning_rate_decay'] and epoch % 10 == 9:
             lr_scheduler.step()
-
 
         # Save the best train model
         if total_loss < best_train_loss:
@@ -177,16 +183,10 @@ def run(params):
                 'epoch': epoch,
                 'model_state_dict': network.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
+                'train_metric' : train_metrics,
+                'val_metric' : val_metrics
             }, best_train_model_name
             )
-
-            # x_true, x_pred = evaluate(network, train_loader, device)
-            # y_true, y_pred = evaluate(network, val_loader, device)
-            #
-            # name = f'{params["model_type"]}-{params["exp_name"]}-train-best-{epoch}'
-            # results(x_true, x_pred, y_true, y_pred, classes, params, path=best_train_path, name=name)
-            # train_metrics.save(params, best_train_path, 'train-log')
-            # val_metrics.save(params, best_train_path, 'val-log')
 
 
         # Save the best val model
@@ -206,19 +206,13 @@ def run(params):
                 'epoch': epoch,
                 'model_state_dict': network.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
+                'train_metric': train_metrics,
+                'val_metric': val_metrics
             }, best_val_model_name
             )
 
-            # x_true, x_pred = evaluate(network, train_loader, device)
-            # y_true, y_pred = evaluate(network, val_loader, device)
-            #
-            # name = f'{params["model_type"]}-{params["exp_name"]}-val-best-{epoch}'
-            # results(x_true, x_pred, y_true, y_pred, classes, params, path=best_val_path, name=name)
-            # train_metrics.save(params, best_val_path, 'train-log')
-            # val_metrics.save(params, best_val_path, 'val-log')
-
     # Save the latest model
-    latest_path = f'results/{params["model_type"]}/{params["exp_name"]}/latest-path/'
+    latest_path = f'results/{params["model_type"]}/{params["exp_name"]}/latest/'
     Path(latest_path).mkdir(parents=True, exist_ok=True)
     torch.save({
             'epoch': params['epochs']-1,
@@ -227,8 +221,14 @@ def run(params):
             }, f'{latest_path}latest-{params["epochs"]-1}'
     )
 
+    start_time = time.time()
     x_true, x_pred = evaluate(network, train_loader, device)
+    end_pred_train_time = time.time() - start_time
     y_true, y_pred = evaluate(network, val_loader, device)
+    end_pred_val_time = time.time() - start_time
+
+    train_metrics.update_pred_time(end_pred_train_time, end_pred_val_time)
+    val_metrics.update_pred_time(end_pred_train_time, end_pred_val_time)
 
     name = f'{params["model_type"]}-{params["exp_name"]}-latest-{params["epochs"]-1}'
     results(x_true, x_pred, y_true, y_pred, classes, params, path=latest_path, name=name)
@@ -241,9 +241,18 @@ def run(params):
     network.load_state_dict(state['model_state_dict'])
     optimizer.load_state_dict(state['optimizer_state_dict'])
     epoch = state['epoch']
+    train_metrics = state['train_metric']
+    val_metrics = state['val_metric']
 
+    start_time = time.time()
     x_true, x_pred = evaluate(network, train_loader, device)
+    end_pred_train_time = time.time() - start_time
     y_true, y_pred = evaluate(network, val_loader, device)
+    end_pred_val_time = time.time()- start_time
+
+    train_metrics.update_pred_time(end_pred_train_time, end_pred_val_time)
+    val_metrics.update_pred_time(end_pred_train_time, end_pred_val_time)
+
 
     name = f'{params["model_type"]}-{params["exp_name"]}-train-best-{epoch}'
     results(x_true, x_pred, y_true, y_pred, classes, params, path=best_train_path, name=name)
@@ -256,9 +265,17 @@ def run(params):
     network.load_state_dict(state['model_state_dict'])
     optimizer.load_state_dict(state['optimizer_state_dict'])
     epoch = state['epoch']
+    train_metrics = state['train_metric']
+    val_metrics = state['val_metric']
 
+    start_time = time.time()
     x_true, x_pred = evaluate(network, train_loader, device)
+    end_pred_train_time = time.time() - start_time
     y_true, y_pred = evaluate(network, val_loader, device)
+    end_pred_val_time = time.time()- start_time
+
+    train_metrics.update_pred_time(end_pred_train_time, end_pred_val_time)
+    val_metrics.update_pred_time(end_pred_train_time, end_pred_val_time)
 
     name = f'{params["model_type"]}-{params["exp_name"]}-val-best-{epoch}'
     results(x_true, x_pred, y_true, y_pred, classes, params, path=best_val_path, name=name)
@@ -275,17 +292,17 @@ def run(params):
 def run_loop():
 
     type = 'nn'
-    # feature_extractors = ['resnext101', 'mnasnet1_0']
-    # batch_sizes = [2,4,8,16,32]
-    # learning_rates = [1e-1, 1e-3, 1e-5]
-    # optimizers = ['adamax', 'adam', 'sgd']
-    # learning_rate_decays = [True, False]
-
-    feature_extractors = ['mnasnet1_0', 'resnext101', ]
-    batch_sizes = [32]
-    learning_rates = [1e-5]
+    feature_extractors = ['resnext101', 'mnasnet1_0']
+    batch_sizes = [2,4,8,16,32]
+    learning_rates = [1e-1, 1e-3, 1e-5]
     optimizers = ['adamax', 'adam', 'sgd']
     learning_rate_decays = [True, False]
+
+    # feature_extractors = ['mnasnet1_0', 'resnext101', ]
+    # batch_sizes = [32]
+    # learning_rates = [1e-5]
+    # optimizers = ['adamax', 'adam', 'sgd']
+    # learning_rate_decays = [True, False]
 
     for feature_extractor in feature_extractors:
         for batch_size in batch_sizes:
@@ -297,7 +314,7 @@ def run_loop():
 
                         params = {
                             "batch_size": batch_size,
-                            "epochs": 2,
+                            "epochs": 500,
                             "learning_rate": learning_rate,
                             "weight_decay": 1e-5,
                             "learning_rate_decay_rate":0.96,
