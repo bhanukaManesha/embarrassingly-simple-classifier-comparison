@@ -324,16 +324,11 @@ def run_loop():
 
     type = 'nn'
     feature_extractors = ['resnext101', 'mnasnet1_0']
-    batch_sizes = [64,32,8]
+    batch_sizes = [64, 32]
     learning_rates = [1e-7, 1e-5, 1e-3]
     optimizers = ['adamax', 'adam', 'sgd']
     learning_rate_decays = [True, False]
-
-    # feature_extractors = ['mnasnet1_0', 'resnext101', ]
-    # batch_sizes = [32]
-    # learning_rates = [1e-5]
-    # optimizers = ['adamax', 'adam', 'sgd']
-    # learning_rate_decays = [True, False]
+    architecture_types = ['shallow', 'deep']
 
     count = 0
     for feature_extractor in feature_extractors:
@@ -341,27 +336,30 @@ def run_loop():
             for optimizer in optimizers:
                 for learning_rate in learning_rates:
                     for learning_rate_decay in learning_rate_decays:
-                        expt_name = f'{feature_extractor}-{batch_size}-{optimizer}-{learning_rate}{"-wd" if learning_rate_decay else ""}'
-                        print(type, expt_name)
+                        for architecture_type in architecture_types:
 
-                        params = {
-                            "batch_size": batch_size,
-                            "epochs": 500,
-                            "learning_rate": learning_rate,
-                            "weight_decay": 1e-5,
-                            "learning_rate_decay_rate":0.96,
-                            "learning_rate_decay" : learning_rate_decay,
-                            "optimizer": optimizer,
-                            'feature_extractor': feature_extractor,
-                            'exp_name': expt_name,
-                            'model_type': type
-                        }
+                            expt_name = f'{feature_extractor}-{architecture_type}-{batch_size}-{optimizer}-{learning_rate}{"-wd" if learning_rate_decay else ""}'
 
-                        run(params)
                             total_experiments = len(feature_extractors) * len(batch_sizes) * \
                                 len(optimizers) * len(learning_rates) * len(learning_rate_decays) * \
                                     len(architecture_types)
                             print(f'{count}/{total_experiments}', type, expt_name)
+
+                            params = {
+                                "batch_size": batch_size,
+                                "epochs": 500,
+                                "learning_rate": learning_rate,
+                                "weight_decay": 1e-5,
+                                "learning_rate_decay_rate":0.96,
+                                "learning_rate_decay" : learning_rate_decay,
+                                "optimizer": optimizer,
+                                'feature_extractor': feature_extractor,
+                                'exp_name': expt_name,
+                                'model_type': type,
+                                'architecture_type':architecture_type
+                            }
+
+                            run(params)
 
 
 if __name__ == '__main__':
