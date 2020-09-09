@@ -3,6 +3,7 @@ import randomforest
 import knn
 import naivebayes
 import svm
+import nn
 
 
 if __name__ == '__main__':
@@ -11,3 +12,4 @@ if __name__ == '__main__':
     knn.run_loop()
     naivebayes.run_loop()
     svm.run_loop()
+    nn.run_loop()
