@@ -65,7 +65,7 @@ def run(params):
 def run_loop():
     type = 'svm'
     feature_extractors = ['resnext101', 'mnasnet1_0']
-    kernels = ['linear','poly','rbf', 'sigmoid','precomputed']
+    kernels = ['linear','poly','rbf', 'sigmoid']
     C = [1e-4, 1e-2, 1, 1e2, 1e4]
 
     count = 0
