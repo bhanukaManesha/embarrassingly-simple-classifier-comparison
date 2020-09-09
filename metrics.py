@@ -34,7 +34,7 @@ class Metrics():
 
     def update_pred_time(self, train_pred, test_pred):
         self.train_pred_time = train_pred
-        self.test_pred = test_pred
+        self.test_pred_time = test_pred
 
 
     def save(self, params, path, name):
