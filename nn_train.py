@@ -103,9 +103,24 @@ def run(params):
     best_val_model_name = ""
     best_val_path = ""
 
+    early_stopping_array = []
+
     start_time = time.time()
 
+    current_epoch = 0
+
     for epoch in range(params['epochs']):
+
+        # Early stopping
+        count = 0
+        for loss in reversed(early_stopping_array):
+            if loss == best_val_loss:
+                count+=1
+        if count >= 25:
+            break
+
+        current_epoch = epoch
+
         total_loss = 0
         total_correct = 0
         total_preds = []
@@ -116,7 +131,7 @@ def run(params):
         total_val_preds = []
         total_val_labels = []
 
-        desc = f'{epoch}/{params["epochs"] - 1} | train: [{best_train_correct:.3f} :: {best_train_loss:.3f}] | val_loss: [{best_val_correct:.3f} :: {best_val_loss:.3f}] '
+        desc = f'{epoch}/{params["epochs"] - 1} | train: [{best_train_correct:.3f} :: {best_train_loss:.3f}] | val: [{best_val_correct:.3f} :: {best_val_loss:.3f}] '
 
         for batch in tqdm(train_loader, desc=desc):
             images = batch[0].to(device)
@@ -211,20 +226,27 @@ def run(params):
             }, best_val_model_name
             )
 
+        # Keep track of the best losses
+        early_stopping_array.append(best_val_loss)
+
     # Save the latest model
     latest_path = f'results/{params["model_type"]}/{params["exp_name"]}/latest/'
     Path(latest_path).mkdir(parents=True, exist_ok=True)
     torch.save({
-            'epoch': params['epochs']-1,
+            'epoch': current_epoch,
             'model_state_dict': network.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
-            }, f'{latest_path}latest-{params["epochs"]-1}'
+            }, f'{latest_path}latest-{current_epoch}'
     )
 
     start_time = time.time()
     x_true, x_pred = evaluate(network, train_loader, device)
+    x_true = x_true.to('cpu')
+    x_pred = x_pred.to('cpu')
     end_pred_train_time = time.time() - start_time
     y_true, y_pred = evaluate(network, val_loader, device)
+    y_true = y_true.to('cpu')
+    y_pred = y_pred.to('cpu')
     end_pred_val_time = time.time() - start_time
 
     train_metrics.update_pred_time(end_pred_train_time, end_pred_val_time)
@@ -246,9 +268,13 @@ def run(params):
 
     start_time = time.time()
     x_true, x_pred = evaluate(network, train_loader, device)
+    x_true = x_true.to('cpu')
+    x_pred = x_pred.to('cpu')
     end_pred_train_time = time.time() - start_time
     y_true, y_pred = evaluate(network, val_loader, device)
-    end_pred_val_time = time.time()- start_time
+    y_true = y_true.to('cpu')
+    y_pred = y_pred.to('cpu')
+    end_pred_val_time = time.time() - start_time
 
     train_metrics.update_pred_time(end_pred_train_time, end_pred_val_time)
     val_metrics.update_pred_time(end_pred_train_time, end_pred_val_time)
@@ -270,9 +296,13 @@ def run(params):
 
     start_time = time.time()
     x_true, x_pred = evaluate(network, train_loader, device)
+    x_true = x_true.to('cpu')
+    x_pred = x_pred.to('cpu')
     end_pred_train_time = time.time() - start_time
     y_true, y_pred = evaluate(network, val_loader, device)
-    end_pred_val_time = time.time()- start_time
+    y_true = y_true.to('cpu')
+    y_pred = y_pred.to('cpu')
+    end_pred_val_time = time.time() - start_time
 
     train_metrics.update_pred_time(end_pred_train_time, end_pred_val_time)
     val_metrics.update_pred_time(end_pred_train_time, end_pred_val_time)
@@ -283,18 +313,12 @@ def run(params):
     val_metrics.save(params, best_val_path, 'val-log')
 
 
-
-
-
-
-
-
 def run_loop():
 
     type = 'nn'
     feature_extractors = ['resnext101', 'mnasnet1_0']
-    batch_sizes = [2,4,8,16,32]
-    learning_rates = [1e-1, 1e-3, 1e-5]
+    batch_sizes = [64,32,8]
+    learning_rates = [1e-7, 1e-5, 1e-3]
     optimizers = ['adamax', 'adam', 'sgd']
     learning_rate_decays = [True, False]
 
@@ -326,8 +350,6 @@ def run_loop():
                         }
 
                         run(params)
-
-
 
 
 if __name__ == '__main__':
