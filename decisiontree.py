@@ -27,7 +27,8 @@ def run(params):
 
     # training
     clf = DecisionTreeClassifier(
-        criterion=params['criterion']
+        criterion=params['criterion'],
+        max_depth=params['max_depth']
     )
 
     train_start_time = time.time()
@@ -66,17 +67,20 @@ def run_loop():
     type = 'decision-tree'
     feature_extractors = ['resnext101', 'mnasnet1_0']
     criterions = ['gini','entropy']
+    max_depths = [10, 50, 100, None]
 
     for feature_extractor in feature_extractors:
         for criterion in criterions:
-                expt_name = f'{feature_extractor}-{criterion}'
+            for max_depth in max_depths:
+                expt_name = f'{feature_extractor}-{criterion}-{max_depth}'
                 print(type, expt_name)
 
                 run({
                     'criterion':criterion,
                     'feature_extractor':feature_extractor,
                     'exp_name' : expt_name,
-                    'model_type':type
+                    'model_type':type,
+                    'max_depth':max_depth
                 })
 
 

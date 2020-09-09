@@ -30,6 +30,7 @@ def run(params):
         criterion=params['criterion'],
         n_estimators=params['n_estimator'],
         n_jobs=4
+        max_depth=params['max_depth'],
     )
 
     train_start_time = time.time()
@@ -70,19 +71,23 @@ def run_loop():
     n_estimators = [2, 10, 100, 1000]
     criterions = ['gini','entropy']
 
+    max_depths = [10, 50, 100, None]
+
     for feature_extractor in feature_extractors:
         for n_estimator in n_estimators:
             for criterion in criterions:
-                expt_name = f'{feature_extractor}-{n_estimator}-{criterion}'
-                print(type, expt_name)
+                for max_depth in max_depths:
+                    expt_name = f'{feature_extractor}-{n_estimator}-{criterion}-{max_depth}'
+                    print(type, expt_name)
 
-                run({
-                    'n_estimator': n_estimator,
-                    'criterion':criterion,
-                    'feature_extractor':feature_extractor,
-                    'exp_name' : expt_name,
-                    'model_type':type
-                })
+                    run({
+                        'n_estimator': n_estimator,
+                        'criterion':criterion,
+                        'feature_extractor':feature_extractor,
+                        'exp_name' : expt_name,
+                        'model_type':type,
+                        'max_depth':max_depth
+                    })
 
 
 if __name__ == '__main__':
