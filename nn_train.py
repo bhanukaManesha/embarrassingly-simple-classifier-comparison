@@ -140,7 +140,7 @@ def run(params):
 
         desc = f'  [{epoch}:{params["epochs"] - 1}] | train: [{best_train_correct:.3f} :: {best_train_loss:.3f}] | val: [{best_val_correct:.3f} :: {best_val_loss:.3f}] '
 
-        for batch in tqdm(train_loader, desc=desc):
+        for batch in tqdm(train_loader, desc=desc, position=0, leave=True):
             images = batch[0].to(device)
             labels = batch[1].to(device)
 
@@ -188,7 +188,7 @@ def run(params):
             lr_scheduler.step()
 
         # Save the best train model
-        if total_loss < best_train_loss:
+        if total_correct > best_train_correct:
 
             if os.path.exists(best_train_model_name):
                 os.remove(best_train_model_name)
@@ -212,7 +212,7 @@ def run(params):
 
 
         # Save the best val model
-        if total_val_loss < best_val_loss:
+        if total_val_correct > best_val_correct:
             if os.path.exists(best_val_model_name):
                 os.remove(best_val_model_name)
 
@@ -234,7 +234,7 @@ def run(params):
             )
 
         # Keep track of the best losses
-        early_stopping_array.append(best_val_loss)
+        early_stopping_array.append(best_val_correct)
 
     # Save the latest model
     latest_path = f'results/{params["model_type"]}/{params["exp_name"]}/latest/'
@@ -343,6 +343,7 @@ def run_loop():
                             total_experiments = len(feature_extractors) * len(batch_sizes) * \
                                 len(optimizers) * len(learning_rates) * len(learning_rate_decays) * \
                                     len(architecture_types)
+                            print()
                             print(f'{count}/{total_experiments}', type, expt_name)
 
                             params = {
