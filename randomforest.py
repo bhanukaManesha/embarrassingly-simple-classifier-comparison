@@ -29,8 +29,8 @@ def run(params):
     clf = RandomForestClassifier(
         criterion=params['criterion'],
         n_estimators=params['n_estimator'],
-        n_jobs=4
         max_depth=params['max_depth'],
+        n_jobs=16,
     )
 
     train_start_time = time.time()

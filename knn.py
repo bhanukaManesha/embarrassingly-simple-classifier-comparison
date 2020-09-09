@@ -30,7 +30,7 @@ def run(params):
         n_neighbors=len(classes),
         algorithm=params['algorithm'],
         weights=params['weight'],
-        n_jobs=4
+        n_jobs=16
     )
     train_start_time = time.time()
     clf = clf.fit(train_images, train_labels)
