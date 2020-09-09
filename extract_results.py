@@ -3,30 +3,6 @@ import json
 from glob import glob
 from tqdm import tqdm
 
-# classifier
-# experiment_name
-# feature_extractor
-
-# train-accuracy
-# train-precision
-# train-recall
-# train-f1-score
-
-# train-time
-
-# val-accuracy
-# val-precision
-# val-recall
-# val-f1-score
-
-# pred-time
-
-# top-class
-# top-class-f1-score
-# worst-class
-# worst-class-f1-score
-
-
 def extract_accuracy(path='results/decision-tree/mnasnet1_0-entropy/train_accuracy_report.csv'):
     df = pd.read_csv(path)
     accuracy = df.iloc[0,1]
@@ -82,9 +58,7 @@ def extract_details(df, path):
         classifier, experiment_name, feature_extractor, train_time, pred_time = extract_nn_logs(path + 'val-best/val-log.json')
 
     df = df.append(pd.Series([classifier, experiment_name, feature_extractor, train_accuracy, train_precision, train_recall, train_f1_score, train_time, test_accuracy, test_precision, test_recall, test_f1_score, pred_time, top_class, top_class_f1_score, worst_class, worst_class_f1_score], index=df.columns), ignore_index=True)
-
     return df
-
 
 def extract_results():
 
@@ -95,19 +69,8 @@ def extract_results():
         experiments = glob(model_type+'*/')
         for experiment in experiments:
             main_df = extract_details(main_df, experiment)
-
-    print(main_df)
-
+    # print(main_df)
     main_df.to_csv('results/results.csv')
-
-
-
-
-
-
-
-
-
 
 if __name__ == '__main__':
     # extract_accuracy()
