@@ -70,15 +70,18 @@ def run_loop():
     feature_extractors = ['resnext101', 'mnasnet1_0']
     n_estimators = [2, 10, 100, 1000]
     criterions = ['gini','entropy']
-
     max_depths = [10, 50, 100, None]
 
+    count = 0
     for feature_extractor in feature_extractors:
         for n_estimator in n_estimators:
             for criterion in criterions:
                 for max_depth in max_depths:
                     expt_name = f'{feature_extractor}-{n_estimator}-{criterion}-{max_depth}'
-                    print(type, expt_name)
+
+                    total_experiments = len(feature_extractors) * len(n_estimators) * \
+                                        len(criterions) * len(max_depths)
+                    print(f'{count}/{total_experiments}', type, expt_name)
 
                     run({
                         'n_estimator': n_estimator,

@@ -68,11 +68,17 @@ def run_loop():
     kernels = ['linear','poly','rbf', 'sigmoid','precomputed']
     C = [1e-4, 1e-2, 1, 1e2, 1e4]
 
+    count = 0
     for feature_extractor in feature_extractors:
         for kernel in kernels:
             for c in C:
                 expt_name = f'{feature_extractor}-{kernel}-{c}'
-                print(type, expt_name)
+
+                total_experiments = len(feature_extractors) * len(kernels) * \
+                                    len(C)
+                print(f'{count}/{total_experiments}', type, expt_name)
+
+
 
                 run({
                     'C':c,

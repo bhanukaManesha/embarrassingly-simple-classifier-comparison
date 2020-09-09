@@ -69,11 +69,15 @@ def run_loop():
     criterions = ['gini','entropy']
     max_depths = [10, 50, 100, None]
 
+    count = 0
     for feature_extractor in feature_extractors:
         for criterion in criterions:
             for max_depth in max_depths:
                 expt_name = f'{feature_extractor}-{criterion}-{max_depth}'
-                print(type, expt_name)
+
+                total_experiments = len(feature_extractors) * len(criterions) * \
+                                    len(max_depths)
+                print(f'{count}/{total_experiments}', type, expt_name)
 
                 run({
                     'criterion':criterion,

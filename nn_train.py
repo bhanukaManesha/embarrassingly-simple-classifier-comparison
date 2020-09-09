@@ -1,4 +1,4 @@
-from nn import IndoorResNetNetwork, IndoorMnasnetNetwork
+from nn import IndoorResNetNetwork, IndoorMnasnetNetwork, IndoorMnasnetDeepNetwork, IndoorResNetDeepNetwork
 from dataset import IndoorSceneFeatureDataset
 from torch.utils.data import Dataset, DataLoader
 from torch.optim import Adamax, Adam, SGD, lr_scheduler
@@ -42,9 +42,16 @@ def evaluate(network, data_loader, device):
 def run(params):
 
     if params['feature_extractor'] == 'resnext101':
-        network = IndoorResNetNetwork()
+        if params['architecture_type'] == 'shallow':
+            network = IndoorResNetNetwork()
+        else:
+            network = IndoorResNetDeepNetwork()
+
     else:
-        network = IndoorMnasnetNetwork()
+        if params['architecture_type'] == 'shallow':
+            network = IndoorMnasnetNetwork()
+        else:
+            network = IndoorMnasnetDeepNetwork()
 
     network.to(device)
 
@@ -131,7 +138,7 @@ def run(params):
         total_val_preds = []
         total_val_labels = []
 
-        desc = f'{epoch}/{params["epochs"] - 1} | train: [{best_train_correct:.3f} :: {best_train_loss:.3f}] | val: [{best_val_correct:.3f} :: {best_val_loss:.3f}] '
+        desc = f'  [{epoch}:{params["epochs"] - 1}] | train: [{best_train_correct:.3f} :: {best_train_loss:.3f}] | val: [{best_val_correct:.3f} :: {best_val_loss:.3f}] '
 
         for batch in tqdm(train_loader, desc=desc):
             images = batch[0].to(device)
@@ -328,6 +335,7 @@ def run_loop():
     # optimizers = ['adamax', 'adam', 'sgd']
     # learning_rate_decays = [True, False]
 
+    count = 0
     for feature_extractor in feature_extractors:
         for batch_size in batch_sizes:
             for optimizer in optimizers:
@@ -350,6 +358,10 @@ def run_loop():
                         }
 
                         run(params)
+                            total_experiments = len(feature_extractors) * len(batch_sizes) * \
+                                len(optimizers) * len(learning_rates) * len(learning_rate_decays) * \
+                                    len(architecture_types)
+                            print(f'{count}/{total_experiments}', type, expt_name)
 
 
 if __name__ == '__main__':

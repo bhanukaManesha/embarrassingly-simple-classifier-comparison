@@ -71,11 +71,15 @@ def run_loop():
     algorithms = ['ball_tree','kd_tree','brute']
     weights = ['uniform', 'distance']
 
+    count = 0
     for feature_extractor in feature_extractors:
         for algorithm in algorithms:
             for weight in weights:
                 expt_name = f'{feature_extractor}-{algorithm}-{weight}'
-                print(type, expt_name)
+
+                total_experiments = len(feature_extractors) * len(algorithms) * \
+                                    len(weights)
+                print(f'{count}/{total_experiments}', type, expt_name)
 
                 run({
                     'weight':weight,

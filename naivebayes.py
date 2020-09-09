@@ -67,10 +67,13 @@ def run_loop():
     feature_extractors = ['resnext101', 'mnasnet1_0']
     var_smoothings = [1e-9, 1e-6, 1e-3]
 
+    count = 0
     for feature_extractor in feature_extractors:
         for var_smoothing in var_smoothings:
             expt_name = f'{feature_extractor}-{var_smoothing}'
-            print(type, expt_name)
+
+            total_experiments = len(feature_extractors) * len(var_smoothings)
+            print(f'{count}/{total_experiments}', type, expt_name)
 
             run({
                 'var_smoothing':var_smoothing,
