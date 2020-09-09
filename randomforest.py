@@ -91,6 +91,7 @@ def run_loop():
                         'model_type':type,
                         'max_depth':max_depth
                     })
+                    count += 1
 
 
 if __name__ == '__main__':

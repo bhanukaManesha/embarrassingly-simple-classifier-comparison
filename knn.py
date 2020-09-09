@@ -88,6 +88,7 @@ def run_loop():
                     'exp_name' : expt_name,
                     'model_type':type
                 })
+                count += 1
 
 
 

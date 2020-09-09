@@ -360,7 +360,7 @@ def run_loop():
                             }
 
                             run(params)
-
+                            count += 1
 
 if __name__ == '__main__':
 
