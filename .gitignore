@@ -5,3 +5,6 @@ results
 checkpoints
 .idea
 __pycache__
+plots
+results.txt
+train_all_nn.log
