@@ -1,7 +1,7 @@
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from dataset import IndoorSceneFeatureDataset
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from utils import results
 import torch
 import time

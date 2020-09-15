@@ -1,7 +1,7 @@
 from nn import IndoorResNetNetwork, IndoorMnasnetNetwork, IndoorMnasnetDeepNetwork, IndoorResNetDeepNetwork
 from dataset import IndoorSceneFeatureDataset
-from torch.utils.data import Dataset, DataLoader
-from torch.optim import Adamax, Adam, SGD, lr_scheduler
+from torch.utils.data import DataLoader
+from torch.optim import Adamax, Adam, SGD
 import torch.nn.functional as F
 import torch
 from metrics import Metrics
@@ -292,7 +292,6 @@ def run(params):
     train_metrics.save(params, best_train_path, 'train-log')
     val_metrics.save(params, best_train_path, 'val-log')
 
-
     # Save the best val model
     state = torch.load(best_val_model_name, map_location=torch.device(device))
     network.load_state_dict(state['model_state_dict'])
@@ -323,7 +322,7 @@ def run(params):
 def run_loop():
 
     type = 'nn'
-    feature_extractors = ['resnext101', 'mnasnet1_0']
+    feature_extractors = ['resnext101', 'mnasnet1']
     batch_sizes = [64, 32]
     learning_rates = [1e-7, 1e-5, 1e-3]
     optimizers = ['adamax', 'adam', 'sgd']
@@ -364,8 +363,6 @@ def run_loop():
                             count += 1
 
 if __name__ == '__main__':
-
-
     run_loop()
 
 

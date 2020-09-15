@@ -1,5 +1,5 @@
 from dataset import IndoorSceneFeatureDataset
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from sklearn.svm import SVC
 from utils import results
 import torch

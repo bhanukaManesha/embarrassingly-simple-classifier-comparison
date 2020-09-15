@@ -1,4 +1,4 @@
-import math
+
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
@@ -7,7 +7,6 @@ import torch
 import os
 import h5py
 from sklearn.preprocessing import LabelEncoder
-from tqdm import tqdm
 import numpy as np
 
 class IndoorSceneDataset(Dataset):
@@ -66,24 +65,6 @@ class IndoorSceneFeatureDataset(Dataset):
         return image, indoor_scene
 
 if __name__ == '__main__':
-    # indoorscene_dataset = IndoorSceneDataset(text_file='Dataset/TrainImages.txt',
-    #                                     root_dir='Dataset/Images/',
-    #                                     transform=transforms.Compose([
-    #                                            transforms.Resize((224,224)),
-    #                                             transforms.ToTensor(),
-    #                                            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    #                                        ]))
-    #
-    # trainloader = DataLoader(indoorscene_dataset, batch_size=1, shuffle=True, num_workers=4)
-    #
-    # for i_batch, (images, labels) in enumerate(trainloader):
-    #     print(images.shape)
-    #     print(labels)
-    #
-    #     # observe 4th batch and stop.
-    #     if i_batch == 4:
-    #         break
-
     indoorscene_dataset = IndoorSceneFeatureDataset(
                                             text_file='Dataset/TestImages1.txt',
                                             feature_file = 'Dataset/test-features-1.h5',
@@ -97,10 +78,10 @@ if __name__ == '__main__':
 
     trainloader = DataLoader(indoorscene_dataset, batch_size=8, shuffle=True, num_workers=1)
 
-    # for i_batch, (images, labels) in enumerate(trainloader):
-    #     print(images.shape)
-    #     print(labels)
-    #
-    #     # observe 4th batch and stop.
-    #     if i_batch == 4:
-    #         break
+    for i_batch, (images, labels) in enumerate(trainloader):
+        print(images.shape)
+        print(labels)
+
+        # observe 4th batch and stop.
+        if i_batch == 4:
+            break

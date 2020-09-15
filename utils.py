@@ -1,6 +1,5 @@
 
 from sklearn.metrics import roc_curve, auc
-from itertools import cycle, product
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report

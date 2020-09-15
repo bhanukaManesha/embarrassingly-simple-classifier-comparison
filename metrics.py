@@ -36,7 +36,6 @@ class Metrics():
         self.train_pred_time = train_pred
         self.test_pred_time = test_pred
 
-
     def save(self, params, path, name):
         # Create folder
         Path(path).mkdir(parents=True, exist_ok=True)

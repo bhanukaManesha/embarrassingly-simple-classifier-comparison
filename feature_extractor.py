@@ -2,7 +2,7 @@ from __future__ import print_function, division
 import time
 import torch
 import numpy as np
-from torchvision import datasets, models, transforms
+from torchvision import models, transforms
 from dataset import IndoorSceneDataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm

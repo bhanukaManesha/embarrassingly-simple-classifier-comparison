@@ -1,5 +1,5 @@
 from dataset import IndoorSceneFeatureDataset
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from sklearn.neighbors import KNeighborsClassifier
 from utils import results
 import torch
