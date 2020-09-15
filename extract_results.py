@@ -74,9 +74,29 @@ def extract_results():
     # print(main_df)
     main_df.to_csv('results/results.csv')
 
+
+def extract_results_to_latex():
+    main_df = pd.DataFrame(
+        columns=['Classifier', 'Experiment Name', 'Feature Extractor', 'Train Accuracy', 'Train Precision',
+                 'Train Recall', 'Train F1 Score', 'Train Time', 'Test Accuracy', 'Test Precision', 'Test Recall',
+                 'Test F1 Score', 'Test Time', 'Top Class', 'Top Class F1 Score', 'Worst Class', 'Worst Class F1 Score',
+                 'Epochs (NN only)'])
+
+    model_types = glob("results/*/")
+    for model_type in model_types:
+        experiments = glob(model_type + '*/')
+        for experiment in experiments:
+            main_df = extract_details(main_df, experiment)
+    # print(main_df)
+    main_df = main_df.sort_values('Test F1 Score', ascending=False)
+    main_df = main_df[['Classifier', 'Experiment Name', 'Train F1 Score', 'Train Time', 'Test F1 Score', 'Test Time']]
+    print(main_df.to_latex(longtable=True, index=False))
+
+
 if __name__ == '__main__':
-    # extract_accuracy()
-    # extract_classification_report()
-    # extract_logs()
-    # extract_nn_logs()
+    extract_accuracy()
+    extract_classification_report()
+    extract_logs()
+    extract_nn_logs()
     extract_results()
+    extract_results_to_latex()
