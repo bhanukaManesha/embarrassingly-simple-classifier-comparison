@@ -11,11 +11,7 @@ import random
 import os
 from PIL import Image
 
-# mpl.use('PS')
-mpl.rcParams['text.usetex'] = True
-# rcParams['figure.figsize'] = 8.5, 5
-rcParams['figure.figsize'] = 5, 5
-
+rcParams['figure.figsize'] = 15, 15
 # plt.gcf().subplots_adjust(right=0.5)
 font = {'family' : 'Times New Roman',
         'weight' : 'normal',
@@ -55,36 +51,26 @@ def plot_dataset():
 
     plt.savefig('plots/class_imbalance_1.eps', format='eps')
 
-# Encircle
-def encircle(x,y, ax=None, **kw):
-    if not ax: ax=plt.gca()
-    p = np.c_[x,y]
-    hull = ConvexHull(p)
-    poly = plt.Polygon(p[hull.vertices,:], **kw)
-    ax.add_patch(poly)
-
 def plot_all_results():
     df = pd.read_csv('results/results.csv')
 
     print(df.loc[df['Feature Extractor'] == 'resnext101', 'Test Time'])
     print(df.loc[df['Feature Extractor'] == 'resnext1010', 'Test F1 Score'])
 
-    sns.scatterplot(data=df[df.Classifier=='nn'], x="Test Time", y="Test F1 Score", marker='D', label='Neural Network')
-    sns.scatterplot(data=df[df.Classifier == 'svm'], x="Test Time", y="Test F1 Score", marker='v', label='SVM')
+    sns.scatterplot(data=df[df.Classifier=='nn'], x="Test Time", y="Test F1 Score", marker='.', label='Neural Network')
+    sns.scatterplot(data=df[df.Classifier == 'svm'], x="Test Time", y="Test F1 Score", marker='+', label='SVM')
     sns.scatterplot(data=df[df.Classifier == 'naive-bayes'], x="Test Time", y="Test F1 Score", marker='x', label='Naive Bayes')
     sns.scatterplot(data=df[(df.Classifier == 'decision-tree')], x="Test Time", y="Test F1 Score", marker='2', label='Decision Tree')
     sns.scatterplot(data=df[(df.Classifier == 'random-forest')], x="Test Time",
                     y="Test F1 Score", marker='1', label='Random Forest')
     sns.scatterplot(data=df[df.Classifier == 'knn'], x="Test Time", y="Test F1 Score", marker='^', label='K-Nearest Neighbour')
 
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.legend(loc='center right', bbox_to_anchor = [1, 0.45])
     plt.title(f"Test F1 Score vs Inference Time", fontsize=12)
-    plt.ylabel('Test F1 Score [0-1]')
-    plt.xlabel("Inference Time (s)")
     plt.savefig(f'plots/all.eps', format='eps', bbox_inches='tight')
     plt.show()
 
-def plot_nn(type):
+def plot_classifier(type, ax):
     if type=='nn':
         marker = 'D'
         label = 'Neural Network'
@@ -97,63 +83,42 @@ def plot_nn(type):
     elif type == 'naive-bayes':
         marker = 'x'
         label = 'Naive Bayes'
+    elif type == 'decision-tree':
+        marker = 'x'
+        label = 'Decision Tree'
+    elif type == 'random-forest':
+        marker = 'x'
+        label = 'Random Forest'
 
     df = pd.read_csv('results/results.csv')
 
     df = df[df.Classifier == type]
-    df = df.sort_values('Test F1 Score', ascending=False)
+    df = df.sort_values('Test Accuracy', ascending=False)
 
-    df = df.iloc[0:len(df) if len(df) <= 16 else 16]
+    resnet_df = df[df['Feature Extractor'] == 'resnext101']
+    mnasnet_df = df[df['Feature Extractor'] == 'mnasnet1_0']
 
-    print(df)
-
-    x = df['Test Time'].to_list()
-    y = df['Test F1 Score'].to_list()
-    labels = df['Experiment Name'].to_list()
-
-    for i in range(len(x)):
-        print(x[i])
-        ax = sns.scatterplot(x=[x[i]], y=[y[i]], marker='D',  label=labels[i])
-
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    plt.title(f"Test F1 Score vs Inference Time for {label}", fontsize=12)
-    plt.ylabel('Test F1 Score [0-1]')
-    plt.xlabel("Inference Time (s)")
-
-    plt.savefig(f'plots/{type}.eps', format='eps', bbox_inches='tight')
-    plt.show()
+    resnet_df = resnet_df.iloc[0:len(resnet_df) if len(resnet_df) <= 6 else 6]
+    mnasnet_df = mnasnet_df.iloc[0:len(mnasnet_df) if len(mnasnet_df) <= 6 else 6]
 
 
+    resnext_x = resnet_df['Test Time'].to_list()
+    resnext_y = resnet_df['Test Accuracy'].to_list()
+    resnext_labels = resnet_df['Experiment Name'].to_list()
 
-def plot_dt():
+    for k in range(len(resnext_x)):
+        ax = sns.scatterplot(x=[resnext_x[k]], y=[resnext_y[k]], marker='X',  label=resnext_labels[k], ax=ax)
 
-    df = pd.read_csv('results/results.csv')
-    df = df[(df.Classifier == 'decision-tree') | (df.Classifier == 'random-forest')]
+    mnasnet_x = mnasnet_df['Test Time'].to_list()
+    mnasnet_y = mnasnet_df['Test Accuracy'].to_list()
+    mnasnet_labels = mnasnet_df['Experiment Name'].to_list()
 
-    dt = df[(df.Classifier == 'decision-tree')].sort_values('Test F1 Score', ascending=False).iloc[0:8]
-    rf = df[(df.Classifier == 'random-forest')].sort_values('Test F1 Score',  ascending=False).iloc[0:8]
+    for k in range(len(mnasnet_x)):
+        ax = sns.scatterplot(x=[mnasnet_x[k]], y=[mnasnet_y[k]], marker='+',  linewidth=1,  label=mnasnet_labels[k], ax=ax)
 
-    x = dt['Test Time'].to_list()
-    y = dt['Test F1 Score'].to_list()
-    labels = dt['Experiment Name'].to_list()
-
-    for i in range(len(x)):
-        ax = sns.scatterplot(x=[x[i]], y=[y[i]], marker='D',  label='decison-tree ' + labels[i])
-
-
-    x = rf['Test Time'].to_list()
-    y = rf['Test F1 Score'].to_list()
-    labels = rf['Experiment Name'].to_list()
-
-    for i in range(len(x)):
-        ax = sns.scatterplot(x=[x[i]], y=[y[i]], marker='X',  label='random-forest ' + labels[i])
-
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    plt.title(f"Test F1 Score vs Inference Time for Decison Tree and Random Forest", fontsize=12)
-    plt.ylabel('Test F1 Score [0-1]')
-    plt.xlabel("Inference Time (s)")
-    plt.savefig(f'plots/decison_tree.eps', format='eps', bbox_inches='tight')
-    plt.show()
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.set_title(f"Test Accuracy vs Inference Time for {label}", fontsize=12)
+    return ax
 
 def plot_dataset_images():
     images = []
@@ -169,7 +134,7 @@ def plot_dataset_images():
     plt.tight_layout()
 
     n = 0
-    for i in range(16):
+    for i in range(8):
         n += 1
         random_img = random.choice(images)
 
@@ -177,21 +142,48 @@ def plot_dataset_images():
         title = title.replace('_',' ')
         print(title)
         imgs = Image.open(random_img)
-        plt.subplot(4, 4, n)
+        plt.subplot(1, 8, n)
         plt.title(title)
         plt.axis('off')
         plt.imshow(imgs)
 
-    plt.savefig(f'plots/dataset.eps', format='eps')
+    plt.savefig(f'plots/dataset-2.eps', format='eps', bbox_inches='tight')
     plt.show()
 
+def subplot_all():
+    fig, axs = plt.subplots(3, 2)
+    fig.subplots_adjust(wspace=0.8)
+
+    for i, ax in enumerate(np.ravel(axs)):
+
+        if i == 0:
+            print(i, ax)
+            plot_classifier('knn', ax)
+        elif i == 1:
+            print(i, ax)
+            plot_classifier('nn', ax)
+        elif i == 4:
+            print(i, ax)
+            plot_classifier('naive-bayes', ax)
+        elif i == 2:
+            print(i, ax)
+            plot_classifier('svm', ax)
+        elif i == 3:
+            print(i, ax)
+            plot_classifier('decision-tree',ax)
+        elif i == 5:
+            print(i, ax)
+            plot_classifier('random-forest',ax)
+
+    # Set common labels
+    fig.text(0.5, 0.04, 'Inference Time (s)', ha='center', va='center')
+    fig.text(0.06, 0.5, 'Test Accuracy [0-1]', ha='center', va='center', rotation='vertical')
+
+    plt.savefig(f'plots/combined.eps', format='eps', bbox_inches='tight')
+    plt.show()
 
 if __name__ == '__main__':
     plot_dataset()
     plot_all_results()
-    plot_nn('knn')
-    plot_nn('nn')
-    plot_nn('naive-bayes')
-    plot_nn('svm')
-    plot_dt()
+    subplot_all()
     plot_dataset_images()
