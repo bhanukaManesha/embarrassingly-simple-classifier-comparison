@@ -11,7 +11,6 @@ import random
 import os
 from PIL import Image
 
-rcParams['figure.figsize'] = 15, 15
 # plt.gcf().subplots_adjust(right=0.5)
 font = {'family' : 'Times New Roman',
         'weight' : 'normal',
@@ -52,21 +51,24 @@ def plot_dataset():
     plt.savefig('plots/class_imbalance_1.eps', format='eps')
 
 def plot_all_results():
+    rcParams['figure.figsize'] = 6,6
     df = pd.read_csv('results/results.csv')
 
     print(df.loc[df['Feature Extractor'] == 'resnext101', 'Test Time'])
     print(df.loc[df['Feature Extractor'] == 'resnext1010', 'Test F1 Score'])
 
-    sns.scatterplot(data=df[df.Classifier=='nn'], x="Test Time", y="Test F1 Score", marker='.', label='Neural Network')
-    sns.scatterplot(data=df[df.Classifier == 'svm'], x="Test Time", y="Test F1 Score", marker='+', label='SVM')
-    sns.scatterplot(data=df[df.Classifier == 'naive-bayes'], x="Test Time", y="Test F1 Score", marker='x', label='Naive Bayes')
-    sns.scatterplot(data=df[(df.Classifier == 'decision-tree')], x="Test Time", y="Test F1 Score", marker='2', label='Decision Tree')
+    sns.scatterplot(data=df[df.Classifier=='nn'], x="Test Time", y="Test Accuracy", marker='.', label='Neural Network')
+    sns.scatterplot(data=df[df.Classifier == 'svm'], x="Test Time", y="Test Accuracy", marker='+', label='SVM')
+    sns.scatterplot(data=df[df.Classifier == 'naive-bayes'], x="Test Time", y="Test Accuracy", marker='x', label='Naive Bayes')
+    sns.scatterplot(data=df[(df.Classifier == 'decision-tree')], x="Test Time", y="Test Accuracy", marker='2', label='Decision Tree')
     sns.scatterplot(data=df[(df.Classifier == 'random-forest')], x="Test Time",
-                    y="Test F1 Score", marker='1', label='Random Forest')
-    sns.scatterplot(data=df[df.Classifier == 'knn'], x="Test Time", y="Test F1 Score", marker='^', label='K-Nearest Neighbour')
+                    y="Test Accuracy", marker='1', label='Random Forest')
+    sns.scatterplot(data=df[df.Classifier == 'knn'], x="Test Time", y="Test Accuracy", marker='^', label='K-Nearest Neighbour')
 
-    plt.legend(loc='center right', bbox_to_anchor = [1, 0.45])
-    plt.title(f"Test F1 Score vs Inference Time", fontsize=12)
+    plt.legend(loc='center right', bbox_to_anchor = [0.75, 0.45])
+    plt.title(f"Test Accuracy vs Inference Time per Image", fontsize=12)
+    plt.xlabel("Inference Time per Image (s)")
+    plt.ylabel("Test Accuracy [0-1]")
     plt.savefig(f'plots/all.eps', format='eps', bbox_inches='tight')
     plt.show()
 
@@ -117,7 +119,7 @@ def plot_classifier(type, ax):
         ax = sns.scatterplot(x=[mnasnet_x[k]], y=[mnasnet_y[k]], marker='+',  linewidth=1,  label=mnasnet_labels[k], ax=ax)
 
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    ax.set_title(f"Test Accuracy vs Inference Time for {label}", fontsize=12)
+    ax.set_title(f"Test Accuracy vs Inference Time per Image for {label}", fontsize=12)
     return ax
 
 def plot_dataset_images():
@@ -151,6 +153,7 @@ def plot_dataset_images():
     plt.show()
 
 def subplot_all():
+    rcParams['figure.figsize'] = 15, 15
     fig, axs = plt.subplots(3, 2)
     fig.subplots_adjust(wspace=0.8)
 
@@ -176,14 +179,14 @@ def subplot_all():
             plot_classifier('random-forest',ax)
 
     # Set common labels
-    fig.text(0.5, 0.04, 'Inference Time (s)', ha='center', va='center')
+    fig.text(0.5, 0.04, 'Inference Time per Image (s)', ha='center', va='center')
     fig.text(0.06, 0.5, 'Test Accuracy [0-1]', ha='center', va='center', rotation='vertical')
 
     plt.savefig(f'plots/combined.eps', format='eps', bbox_inches='tight')
     plt.show()
 
 if __name__ == '__main__':
-    plot_dataset()
+    # plot_dataset()
     plot_all_results()
     subplot_all()
-    plot_dataset_images()
+    # plot_dataset_images()
