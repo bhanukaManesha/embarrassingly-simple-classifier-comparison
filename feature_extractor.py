@@ -15,8 +15,8 @@ class FeatureExtractor():
     def __init__(self, name, train_dataloader, test_dataloader):
 
         self.name = name
-
         start_time = time.time()
+
         self.train_dataloader = train_dataloader
         self.test_dataloader = test_dataloader
 
@@ -51,17 +51,25 @@ class FeatureExtractor():
         self.test_features = None
         self.test_labels = None
 
+        start_train_features_time = time.time()
         self.__extract_features(dataset='train')
+        train_features_time = time.time() - start_train_features_time
+
+        start_test_features_time = time.time()
         self.__extract_features(dataset='test')
+        test_features_time = time.time() - start_test_features_time
+
 
         self.__to_hdf5(f'Dataset/{name}-features.h5')
 
         metrics = {
             'name' : self.name,
-            'time-taken' : time.time() - start_time
+            'total-time-taken' : time.time() - start_time,
+            'train-time-taken': train_features_time,
+            'test-time-taken': test_features_time
         }
 
-        log_file = open(f'Dataset/{name}-features-log.json', "w")
+        log_file = open(f'results/{name}-features-log.json', "w")
         json.dump(metrics, log_file, indent=4)
 
     def __extract_features(self, dataset):
@@ -138,7 +146,7 @@ class FeatureExtractor():
 
 if __name__ == '__main__':
     train_indoorscene_dataset = IndoorSceneDataset(text_file='Dataset/TrainImages.txt',
-                                                  root_dir='Dataset/Images/',
+                                                  root_dir='Images/',
                                                   transform=transforms.Compose([
                                                       transforms.Resize((224, 224)),
                                                       transforms.ToTensor(),
@@ -148,7 +156,7 @@ if __name__ == '__main__':
 
 
     test_indoorscene_dataset = IndoorSceneDataset(text_file='Dataset/TestImages.txt',
-                                        root_dir='Dataset/Images/',
+                                        root_dir='Images/',
                                         transform=transforms.Compose([
                                                transforms.Resize((224,224)),
                                                 transforms.ToTensor(),
