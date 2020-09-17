@@ -3,7 +3,7 @@
 This is a python implementation of an indoor scene classifier comparison with experimentation results.
 
 ## Method
-![Architecture](./plots/highlevel.png)
+![Architecture](./assets/highlevel.png)
 
 ## Usage
 
