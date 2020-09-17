@@ -24,21 +24,51 @@ def extract_classification_report(path='results/decision-tree/mnasnet1_0-entropy
 
 def extract_logs(path='results/decision-tree/mnasnet1_0-entropy/log.json'):
     js = json.load(open(path))
+    feature_extractor = js['feature_extractor']
+
+    train_time = 0
+    test_time = 0
+
+    if feature_extractor == 'mnasnet1_0':
+        mnasnet_log_path = 'results/mnasnet1_0-features-log.json'
+        js_fe = json.load(open(mnasnet_log_path))
+        train_time = js_fe['train-time-taken']
+        test_time = js_fe['test-time-taken']
+
+    elif feature_extractor == 'resnext101':
+        resnet_log_path = 'results/resnext101-features-log.json'
+        js_fe = json.load(open(resnet_log_path))
+        train_time = js_fe['train-time-taken']
+        test_time = js_fe['test-time-taken']
+
     classifier = js['model_type']
     experiment_name = js['exp_name']
-    feature_extractor = js['feature_extractor']
-    train_time = js['train_time']
-    pred_time = js['test_pred_time']
+    train_time = (js['train_time'] + train_time)
+    pred_time = (js['test_pred_time'] + test_time) / 1340
     epochs = 0
     return classifier, experiment_name, feature_extractor, train_time, pred_time, epochs
 
 def extract_nn_logs(path='results/nn/mnasnet1_0-32-adamax-1e-05-wd/val-best/val-log.json'):
     js = json.load(open(path))
+    feature_extractor = js['params']['feature_extractor']
+
+    if feature_extractor == 'mnasnet1_0':
+        mnasnet_log_path = 'results/mnasnet1_0-features-log.json'
+        js_fe = json.load(open(mnasnet_log_path))
+        train_time = js_fe['train-time-taken']
+        test_time = js_fe['test-time-taken']
+
+    elif feature_extractor == 'resnext101':
+        resnet_log_path = 'results/resnext101-features-log.json'
+        js_fe = json.load(open(resnet_log_path))
+        train_time = js_fe['train-time-taken']
+        test_time = js_fe['test-time-taken']
+
+
     classifier = js['params']['model_type']
     experiment_name = js['params']['exp_name']
-    feature_extractor = js['params']['feature_extractor']
-    train_time = js['metrics']['train_time']
-    pred_time = js['metrics']['test_pred_time']
+    train_time = (js['metrics']['train_time'] + train_time)
+    pred_time = (js['metrics']['test_pred_time'] + test_time) / 1340
     epochs = js['metrics']['epoch']
     return classifier, experiment_name, feature_extractor, train_time, pred_time, epochs
 
@@ -62,10 +92,12 @@ def extract_details(df, path):
     df = df.append(pd.Series([classifier, experiment_name, feature_extractor, train_accuracy, train_precision, train_recall, train_f1_score, train_time, test_accuracy, test_precision, test_recall, test_f1_score, pred_time, top_class, top_class_f1_score, worst_class, worst_class_f1_score, epochs], index=df.columns), ignore_index=True)
     return df
 
+
+
+
 def extract_results():
 
     main_df = pd.DataFrame(columns = ['Classifier' , 'Experiment Name', 'Feature Extractor' , 'Train Accuracy', 'Train Precision', 'Train Recall', 'Train F1 Score', 'Train Time', 'Test Accuracy', 'Test Precision', 'Test Recall', 'Test F1 Score', 'Test Time', 'Top Class', 'Top Class F1 Score', 'Worst Class', 'Worst Class F1 Score', 'Epochs (NN only)'])
-
     model_types = glob("results/*/")
     for model_type in tqdm(model_types):
         experiments = glob(model_type+'*/')
@@ -100,5 +132,5 @@ if __name__ == '__main__':
     # extract_classification_report()
     # extract_logs()
     # extract_nn_logs()
-    # extract_results()
+    extract_results()
     extract_results_to_latex()

@@ -1,4 +1,3 @@
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from dataset import IndoorSceneFeatureDataset
 from torch.utils.data import DataLoader
