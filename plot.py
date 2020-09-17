@@ -46,7 +46,7 @@ def plot_dataset():
     plt.ylabel("Frequency")
     plt.xticks(y_pos, bars)
     plt.xticks(rotation=90)
-    plt.show()
+    # plt.show()
 
     plt.savefig('plots/class_imbalance_1.eps', format='eps')
 
@@ -70,7 +70,7 @@ def plot_all_results():
     plt.xlabel("Inference Time per Image (s)")
     plt.ylabel("Test Accuracy [0-1]")
     plt.savefig(f'plots/all.eps', format='eps', bbox_inches='tight')
-    plt.show()
+    # plt.show()
 
 def plot_classifier(type, ax):
     if type=='nn':
@@ -150,7 +150,7 @@ def plot_dataset_images():
         plt.imshow(imgs)
 
     plt.savefig(f'plots/dataset-2.eps', format='eps', bbox_inches='tight')
-    plt.show()
+    # plt.show()
 
 def subplot_all():
     rcParams['figure.figsize'] = 15, 15
@@ -183,10 +183,11 @@ def subplot_all():
     fig.text(0.06, 0.5, 'Test Accuracy [0-1]', ha='center', va='center', rotation='vertical')
 
     plt.savefig(f'plots/combined.eps', format='eps', bbox_inches='tight')
-    plt.show()
+    # plt.show()
 
 if __name__ == '__main__':
-    # plot_dataset()
+    plot_dataset()
+    plot_dataset_images()
     plot_all_results()
     subplot_all()
-    # plot_dataset_images()
+
