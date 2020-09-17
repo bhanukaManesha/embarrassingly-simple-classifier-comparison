@@ -1,0 +1,11 @@
+scikit-learn
+scikit-image
+pandas
+torch
+torchvision
+plotly
+numpy
+tqdm
+h5py
+fabric
+invoke
