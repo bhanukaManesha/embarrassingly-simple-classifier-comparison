@@ -3,12 +3,12 @@ import json
 from glob import glob
 from tqdm import tqdm
 
-def extract_accuracy(path='results/decision-tree/mnasnet1_0-entropy/train_accuracy_report.csv'):
+def extract_accuracy(path='results/decision-tree/mnasnet1_0-entropy-10/train_accuracy_report.csv'):
     df = pd.read_csv(path)
     accuracy = df.iloc[0,1]
-    precision = df.iloc[2,1]
-    recall = df.iloc[2, 2]
-    f1_score = df.iloc[2, 3]
+    precision = df.iloc[2,2]
+    recall = df.iloc[2, 3]
+    f1_score = df.iloc[2, 1]
     return accuracy, precision, recall, f1_score
 
 def extract_classification_report(path='results/decision-tree/mnasnet1_0-entropy/test-classification_report.csv'):
@@ -72,6 +72,7 @@ def extract_results():
         for experiment in experiments:
             main_df = extract_details(main_df, experiment)
     # print(main_df)
+    main_df = main_df.sort_values('Test F1 Score', ascending=False)
     main_df.to_csv('results/results.csv')
 
 
@@ -88,15 +89,16 @@ def extract_results_to_latex():
         for experiment in experiments:
             main_df = extract_details(main_df, experiment)
     # print(main_df)
-    main_df = main_df.sort_values('Test F1 Score', ascending=False)
-    main_df = main_df[['Classifier', 'Experiment Name', 'Train F1 Score', 'Train Time', 'Test F1 Score', 'Test Time']]
+    main_df = main_df.sort_values(['Test F1 Score', 'Test Time'], ascending=[False, True])
+    main_df = main_df.round(4)
+    main_df = main_df[['Classifier', 'Experiment Name', 'Train Accuracy', 'Train F1 Score', 'Train Time', 'Test Accuracy', 'Test F1 Score', 'Test Time']]
     print(main_df.to_latex(longtable=True, index=False))
 
 
 if __name__ == '__main__':
-    extract_accuracy()
-    extract_classification_report()
-    extract_logs()
-    extract_nn_logs()
-    extract_results()
+    # extract_accuracy()
+    # extract_classification_report()
+    # extract_logs()
+    # extract_nn_logs()
+    # extract_results()
     extract_results_to_latex()
