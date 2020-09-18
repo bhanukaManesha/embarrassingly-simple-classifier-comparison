@@ -95,7 +95,7 @@ def plot_classifier(type, ax):
     df = pd.read_csv('results/results.csv')
 
     df = df[df.Classifier == type]
-    df = df.sort_values('Test Accuracy', ascending=False)
+    df = df.sort_values(['Test F1 Score', 'Test Time'], ascending=[False, True])
 
     resnet_df = df[df['Feature Extractor'] == 'resnext101']
     mnasnet_df = df[df['Feature Extractor'] == 'mnasnet1_0']
@@ -109,14 +109,14 @@ def plot_classifier(type, ax):
     resnext_labels = resnet_df['Experiment Name'].to_list()
 
     for k in range(len(resnext_x)):
-        ax = sns.scatterplot(x=[resnext_x[k]], y=[resnext_y[k]], marker='X',  label=resnext_labels[k], ax=ax)
+        ax = sns.scatterplot(x=[resnext_x[k]], y=[resnext_y[k]], marker='1', linewidth=2, label=resnext_labels[k], ax=ax, s=200)
 
     mnasnet_x = mnasnet_df['Test Time'].to_list()
     mnasnet_y = mnasnet_df['Test Accuracy'].to_list()
     mnasnet_labels = mnasnet_df['Experiment Name'].to_list()
 
     for k in range(len(mnasnet_x)):
-        ax = sns.scatterplot(x=[mnasnet_x[k]], y=[mnasnet_y[k]], marker='+',  linewidth=1,  label=mnasnet_labels[k], ax=ax)
+        ax = sns.scatterplot(x=[mnasnet_x[k]], y=[mnasnet_y[k]], marker='+',  linewidth=2,  label=mnasnet_labels[k], ax=ax, s=200)
 
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     ax.set_title(f"Test Accuracy vs Inference Time per Image for {label}", fontsize=12)
